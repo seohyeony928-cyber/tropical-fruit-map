@@ -16,8 +16,8 @@ REGION_DATA = {
 }
 
 FRUIT_INFO = {
-    "망고": {"optimal_temp": "20~30도", "link": "https://www.nihhs.go.kr/", "desc": "일조량이 풍부해야 당도가 높음"},
-    "파파야": {"optimal_temp": "25~30도", "link": "https://www.nihhs.go.kr/", "desc": "고온다습한 환경 선호"},
+    "망고": {"optimal_temp": "20~30도","watery":"65~85%","flower":"2~4월", "link": "https://www.nihhs.go.kr/", "desc": "일조량이 풍부해야 당도가 높음"},
+    "파파야": {"optimal_temp": "25~30도", "watery":"60~70%","flower":"상시 개화","link": "https://www.nihhs.go.kr/", "desc": "고온다습한 환경 선호"},
 }
 
 # 지역별 과일 적합도 점수 (예시)
@@ -102,6 +102,8 @@ elif mode == "🍎 작물별 적지 지도":
         <h4>{selected_fruit} 적정 생육 조건</h4>
         <ul>
             <li><b>적정 온도:</b> {info['optimal_temp']}</li>
+            <li><b>적정 습도:</b> {info['watery']}</li>
+            <li><b>국내 개화 시기:</b> {info['flower']}</li>
             <li><b>특징:</b> {info['desc']}</li>
         </ul>
     </div>
@@ -144,6 +146,7 @@ elif mode == "🍎 작물별 적지 지도":
     st.caption("🔵 파란색: 1등급(최적) | 🟢 초록색: 2등급(적합) | 🟠 주황색: 3등급(가능)")
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
