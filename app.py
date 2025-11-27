@@ -80,14 +80,9 @@ if mode == "📍 지역별 상세 분석":
 
             # 2. 기후 및 토양 정보 (중간에 표시)
             st.markdown("##### 🌡️ 기후 및 토양 정보")
-            # 보기 좋게 가로로 3등분
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                st.metric(label="평균 기온", value=f"{region_info['temp']}°C")
-            with c2:
-                st.metric(label="토양 산도", value=f"{region_info['soil_ph']}pH")
-            with c3:
-                st.metric(label="연 강수량", value=f"{region_info['rain']}mm")
+            st.metric(label="평균 기온", value=f"{region_info['temp']}°C")
+            st.metric(label="토양 산도", value=f"{region_info['soil_ph']}pH")
+            st.metric(label="연 강수량", value=f"{region_info['rain']}mm")
 
             st.divider() # 구분선
 
@@ -150,4 +145,5 @@ elif mode == "🍎 작물별 적지 지도":
     st.caption("🔵 파란색: 1등급(최적) | 🟢 초록색: 2등급(적합) | 🟠 주황색: 3등급(가능)")
 
     st_folium(m2, height=500, width="100%")
+
 
