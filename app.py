@@ -65,30 +65,35 @@ if mode == "📍 지역별 상세 분석":
     # [오른쪽] 정보 표시
     with col2:
         st.subheader("지역 상세 정보")
-        # *실제로는 지도 클릭값과 연동 가능하나, 기초 단계에선 Selectbox가 안정적임*
         selected_region = st.selectbox("분석할 지역을 선택하세요", list(REGION_DATA.keys()))
         
         if selected_region:
             region_info = REGION_DATA[selected_region]
             scores = SUITABILITY_DATA[selected_region]
 
-            # 탭으로 정보를 깔끔하게 구분
-            tab1 = st.tabs(["정보"])
+            # 1. 등급 및 순위 (가장 위에 표시)
+            st.markdown("##### 🌱 추천 과일 순위")
+            df_scores = pd.DataFrame(list(scores.items()), columns=["과일", "등급"])
+            st.dataframe(df_scores, hide_index=True, use_container_width=True)
             
-            with tab1:
-                st.write(f"**{selected_region}**의 추천 과일 순위")
-                # 등급 데이터를 데이터프레임으로 변환해 보여주기
-                df_scores = pd.DataFrame(list(scores.items()), columns=["과일", "등급"])
-                st.dataframe(df_scores, hide_index=True)
-            
-                print("🌡️ 기후/토양 정보")
+            st.divider() # 구분선
+
+            # 2. 기후 및 토양 정보 (중간에 표시)
+            st.markdown("##### 🌡️ 기후 및 토양 정보")
+            # 보기 좋게 가로로 3등분
+            c1, c2, c3 = st.columns(3)
+            with c1:
                 st.metric(label="평균 기온", value=f"{region_info['temp']}°C")
-                st.metric(label="토양 산도(pH)", value=f"{region_info['soil_ph']}")
+            with c2:
+                st.metric(label="토양 산도", value=f"{region_info['soil_ph']}pH")
+            with c3:
                 st.metric(label="연 강수량", value=f"{region_info['rain']}mm")
 
-                print("💡 종합 의견")
-                st.info("이 지역은 겨울철 기온 유지 비용이 타 지역 대비 15% 저렴할 것으로 예상됩니다.")
+            st.divider() # 구분선
 
+            # 3. 종합 의견 (맨 아래 표시)
+            st.markdown("##### 💡 종합 의견")
+            st.info("이 지역은 겨울철 기온 유지 비용이 타 지역 대비 15% 저렴할 것으로 예상됩니다.")
 # -----------------------------------------------------------------------------
 # 4. 모드 2: 작물별 적지 지도 (Fruit Select -> Heatmap)
 # -----------------------------------------------------------------------------
@@ -145,3 +150,4 @@ elif mode == "🍎 작물별 적지 지도":
     st.caption("🔵 파란색: 1등급(최적) | 🟢 초록색: 2등급(적합) | 🟠 주황색: 3등급(가능)")
 
     st_folium(m2, height=500, width="100%")
+
