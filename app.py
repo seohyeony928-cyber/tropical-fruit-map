@@ -73,7 +73,7 @@ if mode == "📍 지역별 상세 분석":
             scores = SUITABILITY_DATA[selected_region]
 
             # 탭으로 정보를 깔끔하게 구분
-            tab1, tab2, tab3 = st.tabs(["🌱 등급 및 순위", "🌡️ 기후/토양 정보", "💡 종합 의견"])
+            tab1 = st.tabs(["정보"])
             
             with tab1:
                 st.write(f"**{selected_region}**의 추천 과일 순위")
@@ -81,12 +81,12 @@ if mode == "📍 지역별 상세 분석":
                 df_scores = pd.DataFrame(list(scores.items()), columns=["과일", "등급"])
                 st.dataframe(df_scores, hide_index=True)
             
-            with tab2:
+                print("🌡️ 기후/토양 정보")
                 st.metric(label="평균 기온", value=f"{region_info['temp']}°C")
                 st.metric(label="토양 산도(pH)", value=f"{region_info['soil_ph']}")
                 st.metric(label="연 강수량", value=f"{region_info['rain']}mm")
 
-            with tab3:
+                print("💡 종합 의견")
                 st.info("이 지역은 겨울철 기온 유지 비용이 타 지역 대비 15% 저렴할 것으로 예상됩니다.")
 
 # -----------------------------------------------------------------------------
@@ -143,4 +143,5 @@ elif mode == "🍎 작물별 적지 지도":
 
     # 범례 설명
     st.caption("🔵 파란색: 1등급(최적) | 🟢 초록색: 2등급(적합) | 🟠 주황색: 3등급(가능)")
+
     st_folium(m2, height=500, width="100%")
