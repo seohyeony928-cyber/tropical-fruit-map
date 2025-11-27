@@ -129,7 +129,7 @@ elif mode == "🍎 작물별 적지 지도":
         elif "2등급" in grade:
             color = "green" # 적합
             radius = 15
-        elif:
+        elif "3등급" in grade:
             color = "orange" # 가능
             radius = 10
         else:
@@ -150,6 +150,7 @@ elif mode == "🍎 작물별 적지 지도":
  
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
