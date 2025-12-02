@@ -28,7 +28,7 @@ SUITABILITY_DATA = {
 }
 
 # 과일 재배 난이도 / 각 항목 별로
-level_DATA = {
+LEVEL_DATA = {
     "망고" : {"watery":"상", "temperature":"상", "fruits":"중","bug":"상","price":"상"},
     "파파야" : {"watery":중", "temperature":"중", "fruits":"하","bug":"중","price":"중"}
 }
@@ -113,7 +113,7 @@ elif mode == "🍎 작물별 적지 지도":
         </ul>
     </div>
     """, unsafe_allow_html=True)
-    
+    level = LEVEL_DATA[selected_fruit]
      st.markdown(f"""
     <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
         <h4>{selected_fruit} 재배 난이도 </h4>
@@ -168,6 +168,7 @@ elif mode == "🍎 작물별 적지 지도":
  
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
