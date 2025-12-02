@@ -114,7 +114,7 @@ elif mode == "🍎 작물별 적지 지도":
     </div>
     """, unsafe_allow_html=True)
     level = LEVEL_DATA[selected_fruit]
-     st.markdown(f"""
+    st.markdown(f"""
     <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
         <h4>{selected_fruit} 재배 난이도 </h4>
         <ul>
@@ -168,6 +168,7 @@ elif mode == "🍎 작물별 적지 지도":
  
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
