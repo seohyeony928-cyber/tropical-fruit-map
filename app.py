@@ -118,11 +118,11 @@ elif mode == "🍎 작물별 적지 지도":
     <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
         <h4>{selected_fruit} 재배 난이도 </h4>
         <ul>
-            <li><b>습도:</b> {info['watery']}</li>
-            <li><b>온도:</b> {info['temperature']}</li>
-            <li><b>수확시기:</b> {info['fruits']}</li>
-            <li><b>병충해:</b> {info['bug']}</li>
-            <li><b>수익:</b> {info['price']}</li>
+            <li><b>습도:</b> {level['watery']}</li>
+            <li><b>온도:</b> {level['temperature']}</li>
+            <li><b>수확시기:</b> {level['fruits']}</li>
+            <li><b>병충해:</b> {level['bug']}</li>
+            <li><b>수익:</b> {level['price']}</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -168,6 +168,7 @@ elif mode == "🍎 작물별 적지 지도":
  
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
