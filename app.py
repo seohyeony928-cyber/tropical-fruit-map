@@ -27,6 +27,11 @@ SUITABILITY_DATA = {
     "경남 통영": {"망고": "2등급 (적합)", "파파야": "3등급 (가능)"},
 }
 
+# 과일 재배 난이도 / 각 항목 별로
+level_DATA = {
+    "망고" : {"watery":"상", "temperature":"상", "fruits":"중","bug":"상","price":"상"}
+    "파파야" : {"watery":중", "temperature":"중", "fruits":"하","bug":"중","price":"중"}
+}
 # -----------------------------------------------------------------------------
 # 2. 사이드바 (분석 모드 선택)
 # -----------------------------------------------------------------------------
@@ -109,6 +114,19 @@ elif mode == "🍎 작물별 적지 지도":
     </div>
     """, unsafe_allow_html=True)
     
+     st.markdown(f"""
+    <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
+        <h4>{selected_fruit} 재배 난이도 </h4>
+        <ul>
+            <li><b>습도:</b> {info['watery']}</li>
+            <li><b>온도:</b> {info['temperature']}</li>
+            <li><b>수확시기:</b> {info['fruits']}</li>
+            <li><b>병충해:</b> {info['bug']}</li>
+            <li><b>수익:</b> {info['price']}</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # 국립원예특작과학원 링크 버튼
     st.link_button(f"📖 {selected_fruit} 재배 매뉴얼 보러가기 (국립원예특작과학원)", info['link'])
 
@@ -150,6 +168,7 @@ elif mode == "🍎 작물별 적지 지도":
  
 
     st_folium(m2, height=500, width="100%")
+
 
 
 
