@@ -1,5 +1,8 @@
 import streamlit as st
-import streamlit.components.v1 as components  # HTML 지도 출력을 위한 모듈
+import pandas as pd
+import folium
+from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 import os
 import zipfile
 import shutil
@@ -202,6 +205,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
