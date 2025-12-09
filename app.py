@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components  # HTML 지도 출력을 위한 모듈
 import os
 import zipfile
+import shutil
 
 # -----------------------------------------------------------------------------
 # 1. 페이지 설정 (기존 유지)
@@ -19,25 +20,39 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 # [새로 추가된 기능] 지도 압축 파일(maps.zip) 자동 해제
 # -----------------------------------------------------------------------------
-# [수정된 부분] 압축 해제 함수 (에러 처리 추가)
 def unzip_maps():
-    # 1. HTML 파일이 이미 있으면 압축 해제 건너뜀
+    # 이미 파일이 준비되어 있으면 패스
     if os.path.exists("mango_map.html") and os.path.exists("papaya_map.html"):
         return
 
-    # 2. maps.zip 파일이 있는지 확인
-    if os.path.exists("maps.zip"):
-        try:
-            with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
-                zip_ref.extractall(".")
-        except zipfile.BadZipFile:
-            # zip 파일이 깨졌거나 가짜 zip 파일인 경우
-            st.error("🚨 오류: 'maps.zip' 파일이 올바른 압축 파일이 아닙니다.")
-            st.warning("혹시 파일 이름만 .zip으로 바꾸셨나요? 컴퓨터에서 '우클릭 > 압축하기' 기능을 사용해 진짜 압축 파일을 만들어 다시 올려주세요.")
-    else:
-        # zip 파일도 없고 html 파일도 없는 경우
-        st.warning("⚠️ 지도 데이터가 없습니다. 'mango_map.html'과 'papaya_map.html'을 압축한 'maps.zip' 파일을 업로드해주세요.")
+    # 업로드된 zip 파일 찾기 (이름이 달라도 찾을 수 있게)
+    zip_file = None
+    if os.path.exists("map.zip"):
+        zip_file = "map.zip"
+    elif os.path.exists("maps.zip"):
+        zip_file = "maps.zip"
 
+    if zip_file:
+        try:
+            # 압축 해제
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                zip_ref.extractall(".")
+            
+            # [중요] 압축을 풀었는데 파일이 폴더 안에 숨어있을 경우를 대비해 꺼내오기
+            # 현재 폴더를 다 뒤져서 mango_map.html이 보이면 밖으로 이동시킴
+            for root, dirs, files in os.walk("."):
+                if "mango_map.html" in files and root != ".":
+                    shutil.move(os.path.join(root, "mango_map.html"), "mango_map.html")
+                if "papaya_map.html" in files and root != ".":
+                    shutil.move(os.path.join(root, "papaya_map.html"), "papaya_map.html")
+                    
+        except zipfile.BadZipFile:
+            st.error("🚨 압축 파일이 손상되었습니다. 다시 압축해서 올려주세요.")
+    else:
+        st.warning(f"⚠️ 'map.zip' 파일을 찾을 수 없습니다. 파일함에 업로드되었는지 확인해주세요.")
+
+# 압축 해제 실행
+unzip_maps()
 # -----------------------------------------------------------------------------
 # 2. 사이드바 UI (기존 기능 모두 유지)
 # -----------------------------------------------------------------------------
@@ -97,4 +112,5 @@ if selected_fruit == "망고":
 elif selected_fruit == "파파야":
     st.subheader("🍈 파파야 재배지 분석 지도")
     show_html_map("papaya_map.html")
+
 
