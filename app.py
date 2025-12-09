@@ -1,14 +1,14 @@
 import streamlit as st
+import streamlit.components.v1 as components  # HTML 지도 출력을 위한 모듈
 import os
 import zipfile
-import streamlit.components.v1 as components
 
 # -----------------------------------------------------------------------------
 # 1. 페이지 설정 (기존 유지)
 # -----------------------------------------------------------------------------
 st.set_page_config(layout="wide", page_title="열대과일 적정재배지 지도")
 
-# CSS 주입 (기존 스타일 유지)
+# 스타일 설정 (기존 유지)
 st.markdown("""
     <style>
     [data-testid="stSidebar"] h1 { font-size: 28px !important; }
@@ -17,17 +17,22 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# [추가됨] 압축 해제 함수 (지도를 보여주기 위해 필수)
+# [새로 추가된 기능] 지도 압축 파일(maps.zip) 자동 해제
 # -----------------------------------------------------------------------------
 def unzip_maps():
-    # html 파일이 둘 다 있으면 해제하지 않음
+    # html 파일들이 이미 있으면 해제하지 않음
     if os.path.exists("mango_map.html") and os.path.exists("papaya_map.html"):
         return
-    # zip 파일이 있으면 해제
+    
+    # maps.zip 파일이 있으면 해제 수행
     if os.path.exists("maps.zip"):
         with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
             zip_ref.extractall(".")
+    else:
+        # 파일이 없을 경우 안내 메시지
+        st.warning("⚠️ 지도 데이터(maps.zip)가 업로드되지 않았습니다.")
 
+# 앱 실행 시 압축 해제 함수 호출
 unzip_maps()
 
 # -----------------------------------------------------------------------------
@@ -40,15 +45,16 @@ selected_fruit = st.sidebar.radio("작물을 선택하세요:", ["망고", "파�
 
 st.sidebar.markdown("---")
 
-# (2) 연도 및 시나리오 (기존 UI 유지)
-# 주의: 지도는 이미 완성된 HTML을 보여주므로, 이 슬라이더들이 지도 모양을 즉시 바꾸진 않지만
-# UI 구성요소로 남겨둡니다.
+# (2) 연도 및 시나리오 설정 (기존 UI 유지)
+# ※ 주의: 지도는 분석이 완료된 파일이므로, 슬라이더를 움직여도 지도가 즉시 변하진 않지만 
+#         화면 구성 유지를 위해 남겨둡니다.
 selected_year = st.sidebar.selectbox("예측 연도 선택", [2025, 2030, 2040, 2050])
 
 st.sidebar.markdown("### 🌡️ 기후 변화 시나리오 설정")
 temp_change = st.sidebar.slider("평균 기온 상승폭 (℃)", 0.0, 5.0, 1.5, 0.1)
 rain_change = st.sidebar.slider("강수량 변화율 (%)", -20, 20, 0, 5)
 
+# 선택된 옵션 정보 표시
 st.sidebar.info(f"""
 **설정된 시나리오:**
 - 목표 연도: {selected_year}년
@@ -57,38 +63,34 @@ st.sidebar.info(f"""
 """)
 
 # -----------------------------------------------------------------------------
-# 3. 메인 화면 구성
+# 3. 메인 화면 및 지도 출력 (변경된 부분)
 # -----------------------------------------------------------------------------
 st.title("🍎 열대과일 적정 재배지 분석 결과")
 st.write(f"기후 데이터 분석을 통해 도출된 **{selected_year}년 {selected_fruit}** 적정 재배지 지도입니다.")
 
-# [중요] 임의 데이터(REGION_DATA)와 Folium 코드 부분을 삭제하고
-# 아래의 HTML 파일 로드 방식으로 대체했습니다.
-
+# -------------------------------------------------------------------
+# [변경] 기존의 REGION_DATA 및 folium 마커 생성 코드를 삭제하고
+#        HTML 파일을 불러오는 함수로 대체했습니다.
+# -------------------------------------------------------------------
 def show_html_map(file_name):
-    # 파일 확인
+    # 파일 존재 여부 확인
     if not os.path.exists(file_name):
-        st.error(f"⚠️ 지도 파일({file_name})을 찾을 수 없습니다. maps.zip을 업로드했는지 확인해주세요.")
+        st.error(f"지도 파일({file_name})을 찾을 수 없습니다. maps.zip 파일을 확인해주세요.")
         return
 
-    # HTML 파일 읽기
+    # HTML 파일 읽기 (한글 깨짐 방지를 위해 utf-8 지정)
     with open(file_name, 'r', encoding='utf-8') as f:
         map_html = f.read()
     
-    # 지도 출력 (높이 조절 가능)
+    # 스트림릿 컴포넌트로 HTML 출력 (높이 700px)
     components.html(map_html, height=700, scrolling=True)
 
-# 선택된 작물에 따라 지도 파일 보여주기
+
+# 선택된 작물에 따라 알맞은 지도 파일 보여주기
 if selected_fruit == "망고":
-    st.subheader(f"🥭 망고 재배지 분석 지도")
+    st.subheader("🥭 망고 재배지 분석 지도")
     show_html_map("mango_map.html")
 
 elif selected_fruit == "파파야":
-    st.subheader(f"🍈 파파야 재배지 분석 지도")
+    st.subheader("🍈 파파야 재배지 분석 지도")
     show_html_map("papaya_map.html")
-
-# -----------------------------------------------------------------------------
-# 참고: 하단의 표(DataFrame)나 차트는 기존 임의 데이터를 사용했기 때문에
-# 실제 분석 데이터와 맞지 않아 제거했습니다. 
-# 만약 실제 분석 데이터(CSV 등)가 있다면 추가로 띄울 수 있습니다.
-# -----------------------------------------------------------------------------
