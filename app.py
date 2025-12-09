@@ -19,21 +19,24 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 # [새로 추가된 기능] 지도 압축 파일(maps.zip) 자동 해제
 # -----------------------------------------------------------------------------
+# [수정된 부분] 압축 해제 함수 (에러 처리 추가)
 def unzip_maps():
-    # html 파일들이 이미 있으면 해제하지 않음
+    # 1. HTML 파일이 이미 있으면 압축 해제 건너뜀
     if os.path.exists("mango_map.html") and os.path.exists("papaya_map.html"):
         return
-    
-    # maps.zip 파일이 있으면 해제 수행
-    if os.path.exists("maps.zip"):
-        with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
-            zip_ref.extractall(".")
-    else:
-        # 파일이 없을 경우 안내 메시지
-        st.warning("⚠️ 지도 데이터(maps.zip)가 업로드되지 않았습니다.")
 
-# 앱 실행 시 압축 해제 함수 호출
-unzip_maps()
+    # 2. maps.zip 파일이 있는지 확인
+    if os.path.exists("maps.zip"):
+        try:
+            with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
+                zip_ref.extractall(".")
+        except zipfile.BadZipFile:
+            # zip 파일이 깨졌거나 가짜 zip 파일인 경우
+            st.error("🚨 오류: 'maps.zip' 파일이 올바른 압축 파일이 아닙니다.")
+            st.warning("혹시 파일 이름만 .zip으로 바꾸셨나요? 컴퓨터에서 '우클릭 > 압축하기' 기능을 사용해 진짜 압축 파일을 만들어 다시 올려주세요.")
+    else:
+        # zip 파일도 없고 html 파일도 없는 경우
+        st.warning("⚠️ 지도 데이터가 없습니다. 'mango_map.html'과 'papaya_map.html'을 압축한 'maps.zip' 파일을 업로드해주세요.")
 
 # -----------------------------------------------------------------------------
 # 2. 사이드바 UI (기존 기능 모두 유지)
@@ -94,3 +97,4 @@ if selected_fruit == "망고":
 elif selected_fruit == "파파야":
     st.subheader("🍈 파파야 재배지 분석 지도")
     show_html_map("papaya_map.html")
+
