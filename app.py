@@ -27,8 +27,8 @@ def unzip_maps():
 
     # 업로드된 zip 파일 찾기 (이름이 달라도 찾을 수 있게)
     zip_file = None
-    if os.path.exists("map.zip"):
-        zip_file = "map.zip"
+    if os.path.exists("maps.zip"):
+        zip_file = "maps.zip"
     elif os.path.exists("maps.zip"):
         zip_file = "maps.zip"
 
@@ -49,7 +49,7 @@ def unzip_maps():
         except zipfile.BadZipFile:
             st.error("🚨 압축 파일이 손상되었습니다. 다시 압축해서 올려주세요.")
     else:
-        st.warning(f"⚠️ 'map.zip' 파일을 찾을 수 없습니다. 파일함에 업로드되었는지 확인해주세요.")
+        st.warning(f"⚠️ 'maps.zip' 파일을 찾을 수 없습니다. 파일함에 업로드되었는지 확인해주세요.")
 
 # 압축 해제 실행
 unzip_maps()
@@ -180,4 +180,5 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
