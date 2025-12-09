@@ -22,55 +22,19 @@ st.markdown("""
 
 # -----------------------------------------------------------------------------
 # [새로 추가된 기능] 지도 압축 파일(maps.zip) 자동 해제
-# -----------------------------------------------------------------------------
-def unzip_maps():
-    # 이미 파일이 있으면 패스
-    if os.path.exists("mango_map.html") and os.path.exists("papaya_map.html"):
-        return
-
-    # 업로드된 zip 파일 찾기
-    zip_target = None
-    if os.path.exists("map.zip"):
-        zip_target = "map.zip"
-    elif os.path.exists("maps.zip"):
-        zip_target = "maps.zip"
-
-    if zip_target:
-        try:
-            with zipfile.ZipFile(zip_target, 'r') as zip_ref:
-                zip_ref.extractall(".")
-            
-            # 파일이 폴더 안에 숨어있으면 밖으로 꺼내기
-            for root, dirs, files in os.walk("."):
-                if "mango_map.html" in files and root != ".":
-                    shutil.move(os.path.join(root, "mango_map.html"), "mango_map.html")
-                if "papaya_map.html" in files and root != ".":
-                    shutil.move(os.path.join(root, "papaya_map.html"), "papaya_map.html")
-                    
-        except zipfile.BadZipFile:
-            st.error("🚨 압축 파일 오류: 파일이 손상된 것 같습니다.")
-    else:
-        pass 
-
-# 앱 시작 시 압축 해제 실행
-unzip_maps()
-
-# HTML 지도 출력 함수 (모드 2에서 사용)
-def show_html_map(file_name):
-    if not os.path.exists(file_name):
-        st.warning(f"⚠️ {file_name} 파일을 찾을 수 없습니다. map.zip을 확인해주세요.")
-        return
-
+if os.path.exists("maps.zip"):
     try:
-        with open(file_name, 'r', encoding='utf-8') as f:
-            map_html = f.read()
-    except UnicodeDecodeError:
-        with open(file_name, 'r', encoding='cp949') as f:
-            map_html = f.read()
-    
-    components.html(map_html, height=700, scrolling=True)
-# 압축 해제 실행
-unzip_maps()
+        with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
+            zip_ref.extractall(".")
+        
+        # (혹시 파일이 폴더 안에 숨어있으면 밖으로 꺼내는 안전장치)
+        for root, dirs, files in os.walk("."):
+            for file in ["mango_map.html", "papaya_map.html"]:
+                if file in files and root != ".":
+                    shutil.move(os.path.join(root, file), file)
+    except:
+        st.error("압축 파일에 문제가 있습니다. 다시 확인해주세요.")
+# -----------------------------------------------------------------------------
 
 FRUIT_INFO = {
     "망고": {
@@ -220,6 +184,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
