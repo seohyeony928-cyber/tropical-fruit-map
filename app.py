@@ -76,11 +76,11 @@ LEVEL_DATA = {
 @st.cache_data
 def load_region_data():
     """CSV 파일을 읽어서 딕셔너리로 변환"""
-    if os.path.exists("region_data.csv"):
+    if os.path.exists("weather_final.csv"):
         try:
-            df = pd.read_csv("region_data.csv", encoding="utf-8")
+            df = pd.read_csv("weather_final.csv", encoding="utf-8")
         except:
-            df = pd.read_csv("region_data.csv", encoding="cp949")
+            df = pd.read_csv("weather_final.csv", encoding="cp949")
             
         # 딕셔너리 구조: {'거제시': {'temp': 16.0, 'rain': 1440}, ...}
         return df.set_index("region").T.to_dict()
@@ -215,6 +215,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
