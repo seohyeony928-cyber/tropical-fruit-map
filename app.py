@@ -53,24 +53,32 @@ with st.spinner("지도 데이터를 준비 중입니다..."):
 # 2. 데이터 불러오기 (수정됨: weather_final.csv 읽기)
 # -----------------------------------------------------------------------------
 @st.cache_data
-def load_region_data():
-    """CSV 파일을 읽어서 딕셔너리로 변환"""
-    # [수정] 사용자가 요청한 weather_final.csv 파일을 읽습니다.
+def load_weather_data():
+    """기후 데이터(weather_final.csv) 로드"""
     file_name = "weather_final.csv"
-    
     if os.path.exists(file_name):
         try:
             df = pd.read_csv(file_name, encoding="utf-8")
         except:
             df = pd.read_csv(file_name, encoding="cp949")
-            
-        # 딕셔너리 구조로 변환 {'거제시': {'temp': 16.0, 'rain': 1440}, ...}
         return df.set_index("region").T.to_dict()
-    else:
-        return {}
+    return {}
 
-REGION_DATA = load_region_data()
+@st.cache_data
+def load_suitability_data():
+    """적합도 데이터(suitabilty_data.csv) 로드"""
+    file_name = "suitabilty_data.csv"
+    if os.path.exists(file_name):
+        try:
+            df = pd.read_csv(file_name, encoding="utf-8")
+        except:
+            df = pd.read_csv(file_name, encoding="cp949")
+        return df.set_index("region").T.to_dict()
+    return {}
 
+# 두 개의 딕셔너리로 각각 저장
+REGION_DATA = load_weather_data()
+SUITABILITY_DATA = load_suitability_data()
 # -----------------------------------------------------------------------------
 # 함수: HTML 지도 파일 열기 (Mode 2용)
 # -----------------------------------------------------------------------------
@@ -155,13 +163,7 @@ if mode == "📍 지역별 상세 분석":
                 st.metric("연 강수량", f"{int(current_rain)}mm")
             with c3:
                 # 간단한 등급 판별 로직
-                if current_temp >= 16.0:
-                    grade = "1등급 (최적)"
-                elif current_temp >= 14.0:
-                    grade = "2등급 (적합)"
-                else:
-                    grade = "3등급 (가능)"
-                st.metric("종합 재배 등급", grade)
+               st.metric
 
             st.divider()
 
@@ -245,4 +247,5 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
