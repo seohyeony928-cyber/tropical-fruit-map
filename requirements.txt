@@ -2,7 +2,3 @@ streamlit
 pandas
 folium
 streamlit-folium
-zipfile
-shutil
-os
-streamlit.components.v1
