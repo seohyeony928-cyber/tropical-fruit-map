@@ -73,6 +73,22 @@ LEVEL_DATA = {
     "파파야": {"watery": "하", "temperature": "상", "fruits": "연중 수확", "bug": "하", "price": "중"}
 }
 # -----------------------------------------------------------------------------
+@st.cache_data
+def load_region_data():
+    """CSV 파일을 읽어서 딕셔너리로 변환"""
+    if os.path.exists("region_data.csv"):
+        try:
+            df = pd.read_csv("region_data.csv", encoding="utf-8")
+        except:
+            df = pd.read_csv("region_data.csv", encoding="cp949")
+            
+        # 딕셔너리 구조: {'거제시': {'temp': 16.0, 'rain': 1440}, ...}
+        return df.set_index("region").T.to_dict()
+    else:
+        return {}
+
+REGION_DATA = load_region_data()
+
 #st.sidebar.title("🥭 열대과일 지도 서비스")
 mode = st.sidebar.radio(
     "분석 방법을 선택하세요",
@@ -91,6 +107,8 @@ if mode == "📍 지역별 상세 분석":
     st.sidebar.markdown("### ⏳ 미래 시나리오 설정")
     selected_year = st.sidebar.slider("예측 연도 (RCP 8.5)", 2025, 2035, step=2)
     st.sidebar.info(f"현재 **{selected_year}년** 기준 데이터를 보여줍니다.")
+
+    selected_region = st.selectbox("재배 희망 작물을 선택하세요", list(REGION_data.keys()))
 
 
     # [오른쪽] 정보 표시
@@ -186,6 +204,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
