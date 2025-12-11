@@ -21,19 +21,34 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# [새로 추가된 기능] 지도 압축 파일(maps.zip) 자동 해제
-if os.path.exists("maps.zip"):
-    try:
-        with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
-            zip_ref.extractall(".")
+# ... (앞부분 임포트 코드는 그대로 유지) ...
+
+# -----------------------------------------------------------------------------
+# [최적화됨] 지도 압축 파일(maps.zip) 자동 해제 로직
+# -----------------------------------------------------------------------------
+# 파일이 이미 있는지 확인 (매번 압축 풀지 않게 하여 속도 향상)
+if not (os.path.exists("mango_map.html") and os.path.exists("papaya_map.html")):
+    # html 파일이 없을 때만 실행
+    if os.path.exists("maps.zip"):
+        with st.spinner("지도 데이터를 준비 중입니다... 잠시만 기다려 주세요!"):
+            try:
+                with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
+                    zip_ref.extractall(".")
+                
+                # (폴더 안에 파일이 숨어있을 경우 밖으로 꺼내는 안전장치)
+                for root, dirs, files in os.walk("."):
+                    for file in ["mango_map.html", "papaya_map.html"]:
+                        if file in files and root != ".":
+                            shutil.move(os.path.join(root, file), file)
+                
+                st.success("지도 준비 완료!")
+            except Exception as e:
+                st.error(f"압축 파일 해제 중 오류 발생: {e}")
+    else:
+        # zip 파일도 없고 html 파일도 없는 경우
+        st.warning("⚠️ 지도 파일(maps.zip)을 찾을 수 없습니다. 깃허브에 파일이 있는지 확인해주세요.")
         
-        # (혹시 파일이 폴더 안에 숨어있으면 밖으로 꺼내는 안전장치)
-        for root, dirs, files in os.walk("."):
-            for file in ["mango_map.html", "papaya_map.html"]:
-                if file in files and root != ".":
-                    shutil.move(os.path.join(root, file), file)
-    except:
-        st.error("압축 파일에 문제가 있습니다. 다시 확인해주세요.")
+# ... (나머지 코드는 그대로 유지) ...
 # -----------------------------------------------------------------------------
 
 FRUIT_INFO = {
@@ -184,6 +199,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
