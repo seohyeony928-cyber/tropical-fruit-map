@@ -116,25 +116,36 @@ if mode == "📍 지역별 상세 분석":
         st.subheader("지역 상세 정보")
         selected_region = st.selectbox("분석할 지역을 선택하세요", list(REGION_DATA.keys()))
         
+       if not REGION_DATA:
+        st.warning("⚠️ 'region_data.csv' 파일을 업로드해주세요.")
+    else:
+        # 1. 지역 선택 (가장 잘 보이게 상단 배치)
+        selected_region = st.selectbox(
+            "🔎 분석하고 싶은 지역을 선택하세요:", 
+            list(REGION_DATA.keys())
+        )
+
         if selected_region:
-            region_info = REGION_DATA[selected_region]
-            scores = SUITABILITY_DATA[selected_region]
+            data = REGION_DATA[selected_region]
+            current_temp = data['temp']
+            current_rain = data['rain']
 
-            # 1. 등급 및 순위
-            st.markdown("##### 🌱 추천 과일 순위 (현재 기준)")
-            df_scores = pd.DataFrame(list(scores.items()), columns=["과일", "등급"])
-            st.dataframe(df_scores, hide_index=True, use_container_width=True)
+            st.divider()
+
+            # 2. 핵심 지표 (Metric)
+            st.subheader(f"📊 {selected_region} 기후 데이터 (2024년 기준)")
             
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("연평균 기온", f"{current_temp}℃")
+            with c2:
+                st.metric("연 강수량", f"{int(current_rain)}mm")
+            with c3:
+                # 간단한 등급 판별 로직
+                grade = "1등급 (최적)" if current_temp >= 15.0 else "2등급 (적합)" if current_temp >= 13.0 else "3등급 (가능)"
+                st.metric("종합 재배 등급", grade)
+
             st.divider()
-
-            # 2. 기후 및 토양 정보
-            st.markdown("##### 🌡️ 기후 및 토양 정보")
-            st.metric(label="평균 기온", value=f"{region_info['temp']}°C")
-            st.metric(label="토양 산도", value=f"{region_info['soil_ph']}pH")
-            st.metric(label="연 강수량", value=f"{region_info['rain']}mm")
-
-            st.divider()
-
             # 3. 미래 예측 의견
             st.markdown(f"##### 💡 종합 의견 ({selected_year}년 시나리오)")
             
@@ -204,6 +215,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
