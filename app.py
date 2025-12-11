@@ -161,24 +161,14 @@ if mode == "📍 지역별 상세 분석":
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.metric("연평균 기온", f"{current_temp:.1f}℃")
-                st.metric("연 강수량", f"{int(current_rain)}mm")
             with c2:
-                st.metric("🥭 망고 적합도", mango_res)
+                st.metric("연 강수량", f"{int(current_rain)}mm")
             with c3:
+                st.metric("🥭 망고 적합도", mango_res)
                 st.metric("🍈 파파야 적합도", papaya_res)
 
             st.divider()
 
-            # 3. 미래 예측
-            st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
-            
-            temp_increase = (selected_year - 2024) * 0.1
-            future_temp = round(current_temp + temp_increase, 1)
-            cost_save = int((future_temp - 10) * 5) if future_temp > 10 else 0
-            
-            st.info(f"""
-            **{selected_year}년**에는 **{selected_region}**의 연평균 기온이 **약 {future_temp}℃**로 상승할 전망입니다.
-            이에 따라 겨울철 난방 비용이 현재보다 **약 {cost_save}% 절감**되어 재배 여건이 더욱 개선될 것입니다.
             """)
             # 3. 미래 예측 시나리오 (선택한 연도에 맞춰 계산)
             st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
@@ -260,6 +250,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
