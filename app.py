@@ -92,19 +92,6 @@ if mode == "📍 지역별 상세 분석":
     selected_year = st.sidebar.slider("예측 연도 (RCP 8.5)", 2025, 2035, step=2)
     st.sidebar.info(f"현재 **{selected_year}년** 기준 데이터를 보여줍니다.")
 
-    # [왼쪽] 지도 표시 (임의 데이터 기반 Folium)
-    with col1:
-        st.subheader("지도에서 지역을 선택하시오")
-        m = folium.Map(location=[34.0, 127.5], zoom_start=7)
-
-        for region, coords in REGION_DATA.items():
-            folium.Marker(
-                [coords['lat'], coords['lon']],
-                tooltip=region,
-                icon=folium.Icon(color="green", icon="info-sign")
-            ).add_to(m)
-        
-        st_folium(m, height=500, width="100%")
 
     # [오른쪽] 정보 표시
     with col2:
@@ -199,6 +186,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
