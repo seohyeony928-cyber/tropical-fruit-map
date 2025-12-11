@@ -169,7 +169,6 @@ if mode == "📍 지역별 상세 분석":
 
             st.divider()
 
-            """)
            st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
             
             # 미래 기온 상승 시뮬레이션 (1년에 0.1도 상승 가정)
@@ -249,6 +248,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
