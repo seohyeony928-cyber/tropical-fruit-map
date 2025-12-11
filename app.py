@@ -170,8 +170,7 @@ if mode == "📍 지역별 상세 분석":
             st.divider()
 
             """)
-            # 3. 미래 예측 시나리오 (선택한 연도에 맞춰 계산)
-            st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
+           st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
             
             # 미래 기온 상승 시뮬레이션 (1년에 0.1도 상승 가정)
             temp_increase = (selected_year - 2024) * 0.1
@@ -183,10 +182,10 @@ if mode == "📍 지역별 상세 분석":
             else:
                 cost_save = 0
             
-            # 결과 박스 표시
+            # 결과 박스 표시 (특수문자 수정됨)
             st.info(f"""
             지구온난화 시나리오(RCP 8.5)에 따르면, **{selected_year}년**에는 
-            **{selected_region}**의 연평균 기온이 **약 {future_temp}℃**까지 상승할 것으로 예상됩니다.
+            **{selected_region}**의 연평균 기온이 **약 {future_temp}°C**까지 상승할 것으로 예상됩니다.
             
             이에 따라 겨울철 난방 비용이 현재보다 **약 {cost_save}% 절감**되어 
             아열대 작물 재배 경제성이 향상될 것입니다.
@@ -250,6 +249,7 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
 
