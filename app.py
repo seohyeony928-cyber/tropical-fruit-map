@@ -1,56 +1,82 @@
 import streamlit as st
 import pandas as pd
-import folium
-from streamlit_folium import st_folium
 import streamlit.components.v1 as components
 import os
 import zipfile
 import shutil
 
 # -----------------------------------------------------------------------------
-# 1. 페이지 설정 (기존 유지)
+# 1. 페이지 설정
 # -----------------------------------------------------------------------------
 st.set_page_config(layout="wide", page_title="열대과일 적정재배지 지도")
 
-# 스타일 설정 (기존 유지)
+# 스타일 설정
 st.markdown("""
     <style>
     [data-testid="stSidebar"] h1 { font-size: 28px !important; }
     .stRadio p { font-size: 18px !important; font-weight: bold; }
+    .metric-container {
+        background-color: #f0f2f6;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# ... (앞부분 임포트 코드는 그대로 유지) ...
-
+# 지도 압축 파일(maps.zip) 자동 해제 (Mode 2용)
 # -----------------------------------------------------------------------------
-# [최적화됨] 지도 압축 파일(maps.zip) 자동 해제 로직
-# -----------------------------------------------------------------------------
-# 파일이 이미 있는지 확인 (매번 압축 풀지 않게 하여 속도 향상)
 if not (os.path.exists("mango_map.html") and os.path.exists("papaya_map.html")):
-    # html 파일이 없을 때만 실행
     if os.path.exists("maps.zip"):
-        with st.spinner("지도 데이터를 준비 중입니다... 잠시만 기다려 주세요!"):
+        with st.spinner("지도 데이터를 준비 중입니다..."):
             try:
                 with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
                     zip_ref.extractall(".")
-                
-                # (폴더 안에 파일이 숨어있을 경우 밖으로 꺼내는 안전장치)
                 for root, dirs, files in os.walk("."):
                     for file in ["mango_map.html", "papaya_map.html"]:
                         if file in files and root != ".":
                             shutil.move(os.path.join(root, file), file)
-                
-                st.success("지도 준비 완료!")
             except Exception as e:
-                st.error(f"압축 파일 해제 중 오류 발생: {e}")
-    else:
-        # zip 파일도 없고 html 파일도 없는 경우
-        st.warning("⚠️ 지도 파일(maps.zip)을 찾을 수 없습니다. 깃허브에 파일이 있는지 확인해주세요.")
-        
-# ... (나머지 코드는 그대로 유지) ...
-# -----------------------------------------------------------------------------
+                st.error(f"압축 해제 오류: {e}")
 
+# -----------------------------------------------------------------------------
+# 2. 데이터 불러오기 (수정됨: weather_final.csv 읽기)
+# -----------------------------------------------------------------------------
+@st.cache_data
+def load_region_data():
+    """CSV 파일을 읽어서 딕셔너리로 변환"""
+    # [수정] 사용자가 요청한 weather_final.csv 파일을 읽습니다.
+    file_name = "weather_final.csv"
+    
+    if os.path.exists(file_name):
+        try:
+            df = pd.read_csv(file_name, encoding="utf-8")
+        except:
+            df = pd.read_csv(file_name, encoding="cp949")
+            
+        # 딕셔너리 구조로 변환 {'거제시': {'temp': 16.0, 'rain': 1440}, ...}
+        return df.set_index("region").T.to_dict()
+    else:
+        return {}
+
+REGION_DATA = load_region_data()
+
+# -----------------------------------------------------------------------------
+# 함수: HTML 지도 파일 열기 (Mode 2용)
+# -----------------------------------------------------------------------------
+def show_html_map(file_name):
+    if os.path.exists(file_name):
+        with open(file_name, 'r', encoding='utf-8') as f:
+            html_data = f.read()
+        components.html(html_data, height=600, scrolling=True)
+    else:
+        st.error(f"⚠️ '{file_name}' 파일을 찾을 수 없습니다.")
+
+# -----------------------------------------------------------------------------
+# 과일 정보 상수
+# -----------------------------------------------------------------------------
 FRUIT_INFO = {
     "망고": {
         "optimal_temp": "24~30℃",
@@ -72,24 +98,10 @@ LEVEL_DATA = {
     "망고": {"watery": "중", "temperature": "상", "fruits": "1년 1회", "bug": "중", "price": "상"},
     "파파야": {"watery": "하", "temperature": "상", "fruits": "연중 수확", "bug": "하", "price": "중"}
 }
+
 # -----------------------------------------------------------------------------
-@st.cache_data
-def load_region_data():
-    """CSV 파일을 읽어서 딕셔너리로 변환"""
-    if os.path.exists("weather_final.csv"):
-        try:
-            df = pd.read_csv("weather_final.csv", encoding="utf-8")
-        except:
-            df = pd.read_csv("weather_final.csv", encoding="cp949")
-            
-        # 딕셔너리 구조: {'거제시': {'temp': 16.0, 'rain': 1440}, ...}
-        return df.set_index("region").T.to_dict()
-    else:
-        return {}
-
-REGION_DATA = load_region_data()
-
-#st.sidebar.title("🥭 열대과일 지도 서비스")
+# 메인 앱 로직
+# -----------------------------------------------------------------------------
 mode = st.sidebar.radio(
     "분석 방법을 선택하세요",
     ["📍 지역별 상세 분석", "🍎 작물별 적지 지도"]
@@ -97,29 +109,21 @@ mode = st.sidebar.radio(
 
 st.title(f"{mode}")
 
-# -----------------------------------------------------------------------------
-# 4. 모드 1: 지역별 상세 분석 (기존 코드 유지 - Folium 사용)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# 모드 1: 지역별 상세 분석 (대시보드 형태)
+# =============================================================================
 if mode == "📍 지역별 상세 분석":
-    col1, col2 = st.columns([1.5, 1])
-
+    
     st.sidebar.markdown("---")
     st.sidebar.markdown("### ⏳ 미래 시나리오 설정")
     selected_year = st.sidebar.slider("예측 연도 (RCP 8.5)", 2025, 2035, step=2)
     st.sidebar.info(f"현재 **{selected_year}년** 기준 데이터를 보여줍니다.")
-
-    selected_region = st.selectbox("재배 희망 작물을 선택하세요", list(REGION_data.keys()))
-
-
-    # [오른쪽] 정보 표시
-    with col2:
-        st.subheader("지역 상세 정보")
-        selected_region = st.selectbox("분석할 지역을 선택하세요", list(REGION_DATA.keys()))
-        
-       if not REGION_DATA:
-        st.warning("⚠️ 'region_data.csv' 파일을 업로드해주세요.")
+    
+    # 데이터 파일이 없는 경우 에러 처리
+    if not REGION_DATA:
+        st.error("⚠️ 'weather_final.csv' 파일을 찾을 수 없습니다. 깃허브에 파일을 업로드해주세요.")
     else:
-        # 1. 지역 선택 (가장 잘 보이게 상단 배치)
+        # 1. 지역 선택 (화면 상단)
         selected_region = st.selectbox(
             "🔎 분석하고 싶은 지역을 선택하세요:", 
             list(REGION_DATA.keys())
@@ -132,39 +136,57 @@ if mode == "📍 지역별 상세 분석":
 
             st.divider()
 
-            # 2. 핵심 지표 (Metric)
+            # 2. 핵심 지표 (2024년 데이터)
             st.subheader(f"📊 {selected_region} 기후 데이터 (2024년 기준)")
             
+            # 3단 컬럼으로 보기 좋게 배치
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("연평균 기온", f"{current_temp}℃")
+                st.metric("연평균 기온", f"{current_temp:.1f}℃")
             with c2:
                 st.metric("연 강수량", f"{int(current_rain)}mm")
             with c3:
                 # 간단한 등급 판별 로직
-                grade = "1등급 (최적)" if current_temp >= 15.0 else "2등급 (적합)" if current_temp >= 13.0 else "3등급 (가능)"
+                if current_temp >= 16.0:
+                    grade = "1등급 (최적)"
+                elif current_temp >= 14.0:
+                    grade = "2등급 (적합)"
+                else:
+                    grade = "3등급 (가능)"
                 st.metric("종합 재배 등급", grade)
 
             st.divider()
-            # 3. 미래 예측 의견
-            st.markdown(f"##### 💡 종합 의견 ({selected_year}년 시나리오)")
+
+            # 3. 미래 예측 시나리오 (선택한 연도에 맞춰 계산)
+            st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
             
-            future_save = 15 + (selected_year - 2025) * 2 
+            # 미래 기온 상승 시뮬레이션 (1년에 0.1도 상승 가정)
+            temp_increase = (selected_year - 2024) * 0.1
+            future_temp = round(current_temp + temp_increase, 1)
             
+            # 절감 비용 계산 (기온이 높을수록 난방비 절감)
+            if future_temp > 10:
+                cost_save = int((future_temp - 10) * 5)
+            else:
+                cost_save = 0
+            
+            # 결과 박스 표시
             st.info(f"""
-            이 지역은 **{selected_year}년** 기후 시나리오 적용 시, 
-            겨울철 기온 유지 비용이 타 지역 대비 **약 {future_save}% 저렴**할 것으로 예상됩니다.
-            (북상 효과 반영)
+            지구온난화 시나리오(RCP 8.5)에 따르면, **{selected_year}년**에는 
+            **{selected_region}**의 연평균 기온이 **약 {future_temp}℃**까지 상승할 것으로 예상됩니다.
+            
+            이에 따라 겨울철 난방 비용이 현재보다 **약 {cost_save}% 절감**되어 
+            아열대 작물 재배 경제성이 향상될 것입니다.
             """)
 
-# -----------------------------------------------------------------------------
-# 5. 모드 2: 작물별 적지 지도 (HTML 지도 연동으로 변경)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# 모드 2: 작물별 적지 지도 (HTML 지도)
+# =============================================================================
 elif mode == "🍎 작물별 적지 지도":
     # 과일 선택
     selected_fruit = st.selectbox("재배 희망 작물을 선택하세요", list(FRUIT_INFO.keys()))
     
-    # 상단: 과일 기본 정보 박스 (기존 유지)
+    # 상단: 과일 기본 정보 박스
     info = FRUIT_INFO[selected_fruit]
     st.markdown(f"""
     <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
@@ -178,7 +200,7 @@ elif mode == "🍎 작물별 적지 지도":
     </div>
     """, unsafe_allow_html=True)
 
-    # 난이도 정보 박스 (기존 유지)
+    # 난이도 정보 박스
     level = LEVEL_DATA[selected_fruit]
     st.markdown(f"""
     <div style='background-color:#f0f2f6; padding:15px; border-radius:10px; margin-bottom:20px'>
@@ -198,14 +220,14 @@ elif mode == "🍎 작물별 적지 지도":
 
     st.divider()
     
-    # 사이드바 시나리오 (지도 모양은 안 바뀌지만 UI 유지)
+    # 사이드바 시나리오
     st.sidebar.markdown("---")
     st.sidebar.markdown("### ⏳ 미래 시나리오 설정")
     selected_year = st.sidebar.slider("예측 연도 (RCP 8.5)", 2025, 2035, step=2)
     st.sidebar.info(f"현재 **{selected_year}년** 기준 데이터를 보여줍니다.")
 
     # -----------------------------------------------------------
-    # [변경됨] 분석된 HTML 지도 보여주기
+    # 분석된 HTML 지도 보여주기
     # -----------------------------------------------------------
     st.subheader(f"🗺️ {selected_fruit} 적정 재배지 정밀 분석 지도")
     
@@ -215,14 +237,3 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
-
-
-
-
-
-
-
-
-
-
-
