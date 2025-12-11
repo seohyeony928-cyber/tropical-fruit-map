@@ -28,19 +28,27 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 # 지도 압축 파일(maps.zip) 자동 해제 (Mode 2용)
 # -----------------------------------------------------------------------------
-if not (os.path.exists("mango_map.html") and os.path.exists("papaya_map.html")):
-    if os.path.exists("maps.zip"):
-        with st.spinner("지도 데이터를 준비 중입니다..."):
+def unzip_map_file(zip_name, html_name):
+    """zip 파일이 있으면 압축을 풀어서 html 파일을 꺼내는 함수"""
+    # 이미 html 파일이 있으면 압축 풀기 건너뜀 (속도 향상)
+    if not os.path.exists(html_name):
+        if os.path.exists(zip_name):
             try:
-                with zipfile.ZipFile("maps.zip", 'r') as zip_ref:
+                with zipfile.ZipFile(zip_name, 'r') as zip_ref:
                     zip_ref.extractall(".")
+                
+                # 혹시 폴더 안에 파일이 생겼을 경우 밖으로 꺼내기
                 for root, dirs, files in os.walk("."):
-                    for file in ["mango_map.html", "papaya_map.html"]:
-                        if file in files and root != ".":
-                            shutil.move(os.path.join(root, file), file)
+                    if html_name in files and root != ".":
+                        shutil.move(os.path.join(root, html_name), html_name)
+                
             except Exception as e:
-                st.error(f"압축 해제 오류: {e}")
+                st.error(f"{zip_name} 압축 해제 중 오류: {e}")
 
+# 앱 실행 시 바로 압축 해제 시도
+with st.spinner("지도 데이터를 준비 중입니다..."):
+    unzip_map_file("mango_map.zip", "mango_map.html")
+    unzip_map_file("papaya_map.zip", "papaya_map.html")
 # -----------------------------------------------------------------------------
 # 2. 데이터 불러오기 (수정됨: weather_final.csv 읽기)
 # -----------------------------------------------------------------------------
@@ -237,3 +245,4 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
