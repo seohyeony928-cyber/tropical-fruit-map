@@ -30,18 +30,15 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 def unzip_map_file(zip_name, html_name):
     """zip 파일이 있으면 압축을 풀어서 html 파일을 꺼내는 함수"""
-    # 이미 html 파일이 있으면 압축 풀기 건너뜀 (속도 향상)
     if not os.path.exists(html_name):
         if os.path.exists(zip_name):
             try:
                 with zipfile.ZipFile(zip_name, 'r') as zip_ref:
                     zip_ref.extractall(".")
-                
                 # 혹시 폴더 안에 파일이 생겼을 경우 밖으로 꺼내기
                 for root, dirs, files in os.walk("."):
                     if html_name in files and root != ".":
                         shutil.move(os.path.join(root, html_name), html_name)
-                
             except Exception as e:
                 st.error(f"{zip_name} 압축 해제 중 오류: {e}")
 
@@ -49,6 +46,7 @@ def unzip_map_file(zip_name, html_name):
 with st.spinner("지도 데이터를 준비 중입니다..."):
     unzip_map_file("mango_map.zip", "mango_map.html")
     unzip_map_file("papaya_map.zip", "papaya_map.html")
+
 # -----------------------------------------------------------------------------
 # 2. 데이터 불러오기 (수정됨: weather_final.csv 읽기)
 # -----------------------------------------------------------------------------
@@ -61,6 +59,8 @@ def load_weather_data():
             df = pd.read_csv(file_name, encoding="utf-8")
         except:
             df = pd.read_csv(file_name, encoding="cp949")
+        # 컬럼 이름 공백 제거 (안전장치)
+        df.columns = df.columns.str.strip()
         return df.set_index("region").T.to_dict()
     return {}
 
@@ -73,12 +73,14 @@ def load_suitability_data():
             df = pd.read_csv(file_name, encoding="utf-8")
         except:
             df = pd.read_csv(file_name, encoding="cp949")
+        df.columns = df.columns.str.strip()
         return df.set_index("region").T.to_dict()
     return {}
 
 # 두 개의 딕셔너리로 각각 저장
 REGION_DATA = load_weather_data()
 SUITABILITY_DATA = load_suitability_data()
+
 # -----------------------------------------------------------------------------
 # 함수: HTML 지도 파일 열기 (Mode 2용)
 # -----------------------------------------------------------------------------
@@ -142,33 +144,30 @@ if mode == "📍 지역별 상세 분석":
         # 1. 지역 선택 (기후 데이터에 있는 지역 목록 사용)
         selected_region = st.selectbox("🔎 분석하고 싶은 지역을 선택하세요:", list(REGION_DATA.keys()))
 
-        if not REGION_DATA:
-        st.error("⚠️ 데이터 파일을 찾을 수 없습니다. (weather_final.csv, suitabilty_data.csv)")
-    else:
-        # 1. 지역 선택
-        selected_region = st.selectbox("🔎 분석하고 싶은 지역을 선택하세요:", list(REGION_DATA.keys()))
-
         if selected_region:
-            data = REGION_DATA[selected_region]
+            # (1) 기후 데이터 가져오기
+            weather = REGION_DATA[selected_region]
+            current_temp = weather.get('temp', 0)
+            current_rain = weather.get('rain', 0)
             
-            current_temp = data['temp']
-            current_rain = data['rain']
-            # 파일에서 가져온 등급 정보 사용
-            mango_res = f"{data['mango_suitability']} ({data['mango_grade']})"
-            papaya_res = f"{data['papaya_suitability']} ({data['papaya_grade']})"
+            # (2) 적합도 데이터 가져오기 (없을 수도 있으므로 get 사용)
+            suitability = SUITABILITY_DATA.get(selected_region, {})
+            # 데이터가 없으면 '정보없음' 처리
+            mango_res = f"{suitability.get('mango_suitability', '-')} ({suitability.get('mango_grade', '정보없음')})"
+            papaya_res = f"{suitability.get('papaya_suitability', '-')} ({suitability.get('papaya_grade', '정보없음')})"
 
             st.divider()
 
-            # 2. 핵심 지표
+            # 2. 핵심 지표 출력
             st.subheader(f"📊 {selected_region} 분석 결과 (2024년 기준)")
             
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("연평균 기온", f"{current_temp:.1f}℃")
-                st.metric("연 강수량", f"{int(current_rain)}mm")
+                st.metric("연평균 기온", f"{current_temp:.1f}℃") # 특수문자 °C 대신 ℃ 사용 (한글 호환성)
             with c2:
-                st.metric("🥭 망고 적합도", mango_res)
+                st.metric("연 강수량", f"{int(current_rain)}mm")
             with c3:
+                st.metric("🥭 망고 적합도", mango_res)
                 st.metric("🍈 파파야 적합도", papaya_res)
 
             st.divider()
@@ -244,6 +243,3 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
-
-
-
