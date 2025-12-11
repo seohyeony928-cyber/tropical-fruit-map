@@ -142,67 +142,48 @@ if mode == "📍 지역별 상세 분석":
         # 1. 지역 선택 (기후 데이터에 있는 지역 목록 사용)
         selected_region = st.selectbox("🔎 분석하고 싶은 지역을 선택하세요:", list(REGION_DATA.keys()))
 
+        if not REGION_DATA:
+        st.error("⚠️ 데이터 파일을 찾을 수 없습니다. (weather_final.csv, suitabilty_data.csv)")
+    else:
+        # 1. 지역 선택
+        selected_region = st.selectbox("🔎 분석하고 싶은 지역을 선택하세요:", list(REGION_DATA.keys()))
+
         if selected_region:
-            # (1) 기후 데이터 가져오기
-            weather = REGION_DATA[selected_region]
-            current_temp = weather.get('temp', 0)
-            current_rain = weather.get('rain', 0)
+            data = REGION_DATA[selected_region]
             
-            # (2) 적합도 데이터 가져오기 (없을 수도 있으므로 get 사용)
-            suitability = SUITABILITY_DATA.get(selected_region, {})
-            mango_res = f"{suitability.get('mango_suitability', '-')} ({suitability.get('mango_grade', '정보없음')})"
-            papaya_res = f"{suitability.get('papaya_suitability', '-')} ({suitability.get('papaya_grade', '정보없음')})"
+            current_temp = data['temp']
+            current_rain = data['rain']
+            # 파일에서 가져온 등급 정보 사용
+            mango_res = f"{data['mango_suitability']} ({data['mango_grade']})"
+            papaya_res = f"{data['papaya_suitability']} ({data['papaya_grade']})"
 
             st.divider()
 
-            # 2. 핵심 지표 출력
-            if selected_region:
-            # (1) 기후 데이터 가져오기
-            weather = REGION_DATA[selected_region]
-            current_temp = weather.get('temp', 0)
-            current_rain = weather.get('rain', 0)
-            
-            # (2) 적합도 데이터 가져오기
-            suitability = SUITABILITY_DATA.get(selected_region, {})
-            mango_res = f"{suitability.get('mango_suitability', '-')} ({suitability.get('mango_grade', '정보없음')})"
-            papaya_res = f"{suitability.get('papaya_suitability', '-')} ({suitability.get('papaya_grade', '정보없음')})"
-
-            st.divider()
-
-            # 2. 핵심 지표 출력
+            # 2. 핵심 지표
             st.subheader(f"📊 {selected_region} 분석 결과 (2024년 기준)")
             
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("연평균 기온", f"{current_temp:.1f}°C")
-            with c2:
+                st.metric("연평균 기온", f"{current_temp:.1f}℃")
                 st.metric("연 강수량", f"{int(current_rain)}mm")
-            with c3:
+            with c2:
                 st.metric("🥭 망고 적합도", mango_res)
+            with c3:
                 st.metric("🍈 파파야 적합도", papaya_res)
 
             st.divider()
 
-            # 3. 미래 예측 시나리오
+            # 3. 미래 예측
             st.subheader(f"🔮 {selected_year}년 미래 예측 시나리오")
             
-            # 미래 기온 상승 시뮬레이션
             temp_increase = (selected_year - 2024) * 0.1
             future_temp = round(current_temp + temp_increase, 1)
             
-            # 절감 비용 계산
-            if future_temp > 10:
-                cost_save = int((future_temp - 10) * 5)
-            else:
-                cost_save = 0
+            cost_save = int((future_temp - 10) * 5) if future_temp > 10 else 0
             
-            # 결과 박스 표시
             st.info(f"""
-            지구온난화 시나리오(RCP 8.5)에 따르면, **{selected_year}년**에는 
-            **{selected_region}**의 연평균 기온이 **약 {future_temp}°C**까지 상승할 것으로 예상됩니다.
-            
-            이에 따라 겨울철 난방 비용이 현재보다 **약 {cost_save}% 절감**되어 
-            아열대 작물 재배 경제성이 향상될 것입니다.
+            **{selected_year}년**에는 **{selected_region}**의 연평균 기온이 **약 {future_temp}℃**로 상승할 전망입니다.
+            이에 따라 겨울철 난방 비용이 현재보다 **약 {cost_save}% 절감**되어 재배 여건이 더욱 개선될 것입니다.
             """)
 
 # =============================================================================
@@ -263,5 +244,6 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
 
 
