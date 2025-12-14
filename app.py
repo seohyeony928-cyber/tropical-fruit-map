@@ -134,7 +134,7 @@ if mode == "📍 지역별 상세 분석":
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("### ⏳ 미래 시나리오 설정")
-    selected_year = st.sidebar.slider("예측 연도 (RCP 8.5)", 2025, 2035, step=2)
+    selected_year = st.sidebar.slider("예측 연도 (SSP5-8.5)", 2025, 2035, step=2)
     st.sidebar.info(f"현재 **{selected_year}년** 기준 데이터를 보여줍니다.")
     
     # 데이터 파일이 없는 경우 에러 처리
@@ -243,3 +243,4 @@ elif mode == "🍎 작물별 적지 지도":
         show_html_map("papaya_map.html")
     else:
         st.info("이 작물에 대한 정밀 분석 지도는 준비 중입니다.")
+
